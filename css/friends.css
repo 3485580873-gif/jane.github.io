@@ -1,0 +1,1220 @@
+/**
+ * 朋友圈样式 - 仿微信朋友圈高级版
+ * 融入星空主题元素，与"传讯"系统风格一致
+ */
+
+/* ===== CSS变量继承 ===== */
+:root {
+    --friends-accent: var(--accent-color, #c5a47e);
+    --friends-accent-rgb: var(--accent-color-rgb, 197, 164, 126);
+    --friends-accent-dark: var(--accent-color-dark, #d4af37);
+    --friends-radius: 16px;
+    --friends-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --friends-bg-glass: rgba(var(--bg-color-rgb, 16, 16, 28), 0.85);
+}
+
+/* ===== 朋友圈模态框容器 ===== */
+.friends-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.friends-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.friends-modal {
+    width: min(480px, 95vw);
+    height: min(85vh, 800px);
+    background: var(--primary-bg, #1a1a2e);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 
+        0 25px 80px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(var(--friends-accent-rgb), 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.friends-modal-overlay.active .friends-modal {
+    transform: scale(1) translateY(0);
+}
+
+/* ===== 星空背景动画 ===== */
+.friends-modal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: 
+        radial-gradient(ellipse at 50% -20%, rgba(var(--friends-accent-rgb), 0.25) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(var(--friends-accent-rgb), 0.08) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.friends-stars {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 180px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.friends-star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #fff;
+    border-radius: 50%;
+    animation: friendsStarTwinkle 3s ease-in-out infinite;
+}
+
+@keyframes friendsStarTwinkle {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ===== 朋友圈头部 ===== */
+.friends-header {
+    position: relative;
+    z-index: 1;
+    padding: 20px 20px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba(var(--friends-accent-rgb), 0.12) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(var(--friends-accent-rgb), 0.1);
+}
+
+.friends-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.friends-avatar-cover {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(var(--friends-accent-rgb), 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    background: var(--secondary-bg);
+}
+
+.friends-avatar-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friends-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.friends-user-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-family);
+}
+
+.friends-user-motto {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.friends-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.friends-camera-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(var(--friends-accent-rgb), 0.15);
+    border: 1px solid rgba(var(--friends-accent-rgb), 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--friends-accent);
+}
+
+.friends-camera-btn:hover {
+    background: rgba(var(--friends-accent-rgb), 0.25);
+    transform: scale(1.05);
+}
+
+.friends-camera-btn i {
+    font-size: 16px;
+}
+
+.friends-close-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.friends-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+/* ===== 朋友圈内容区域 ===== */
+.friends-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    position: relative;
+    z-index: 1;
+    scroll-behavior: smooth;
+}
+
+.friends-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.friends-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.friends-content::-webkit-scrollbar-thumb {
+    background: rgba(var(--friends-accent-rgb), 0.3);
+    border-radius: 4px;
+}
+
+/* ===== 朋友圈空白状态 ===== */
+.friends-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.friends-empty-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(var(--friends-accent-rgb), 0.15), rgba(var(--friends-accent-rgb), 0.05));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.friends-empty-icon i {
+    font-size: 32px;
+    color: var(--friends-accent);
+    opacity: 0.6;
+}
+
+.friends-empty-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    line-height: 1.6;
+}
+
+/* ===== 动态卡片 ===== */
+.friends-post {
+    background: var(--secondary-bg, rgba(255, 255, 255, 0.03));
+    border-radius: var(--friends-radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(var(--friends-accent-rgb), 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    animation: friendsPostIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes friendsPostIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.friends-post:hover {
+    border-color: rgba(var(--friends-accent-rgb), 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* ===== 动态头部 ===== */
+.friends-post-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.friends-post-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid rgba(var(--friends-accent-rgb), 0.2);
+    background: var(--border-color);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.friends-post-avatar:hover {
+    transform: scale(1.08);
+    border-color: rgba(var(--friends-accent-rgb), 0.4);
+}
+
+.friends-post-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friends-post-avatar i {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 18px;
+}
+
+.friends-post-user {
+    flex: 1;
+    min-width: 0;
+}
+
+.friends-post-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--friends-accent);
+    margin-bottom: 2px;
+    font-family: var(--font-family);
+}
+
+.friends-post-text {
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    word-break: break-word;
+    margin-bottom: 10px;
+}
+
+.friends-post-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.friends-post-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.friends-post-more {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    opacity: 0.5;
+}
+
+.friends-post-more:hover {
+    opacity: 1;
+    background: rgba(var(--friends-accent-rgb), 0.1);
+}
+
+/* ===== 九宫格图片 ===== */
+.friends-post-images {
+    margin: 10px 0;
+}
+
+.friends-images-grid {
+    display: grid;
+    gap: 4px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.friends-images-grid.one-image {
+    grid-template-columns: 1fr;
+    max-height: 300px;
+}
+
+.friends-images-grid.two-images,
+.friends-images-grid.three-images,
+.friends-images-grid.four-images {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.friends-images-grid.six-images {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.friends-image-item {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: var(--border-color);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.friends-image-item:hover {
+    transform: scale(1.02);
+    z-index: 1;
+}
+
+.friends-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.friends-image-item:hover img {
+    transform: scale(1.05);
+}
+
+.friends-image-item.more-overlay {
+    position: relative;
+}
+
+.friends-image-item.more-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.friends-image-more-count {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
+    z-index: 2;
+}
+
+/* ===== 点赞和评论区域 ===== */
+.friends-post-interaction {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(var(--friends-accent-rgb), 0.08);
+}
+
+.friends-likes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.friends-like-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.friends-like-icon {
+    color: var(--friends-accent);
+    font-size: 14px;
+}
+
+.friends-like-name {
+    font-size: 13px;
+    color: var(--friends-accent);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.friends-like-name:hover {
+    opacity: 0.7;
+}
+
+.friends-like-separator {
+    color: var(--text-secondary);
+    opacity: 0.4;
+    font-size: 12px;
+}
+
+/* ===== 评论列表 ===== */
+.friends-comments {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.friends-comment {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+.friends-comment:hover {
+    background: rgba(var(--friends-accent-rgb), 0.08);
+}
+
+.friends-comment-author {
+    font-weight: 500;
+    color: var(--friends-accent);
+    cursor: pointer;
+}
+
+.friends-comment-author:hover {
+    text-decoration: underline;
+}
+
+.friends-comment-reply {
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+.friends-comment-reply-name {
+    color: var(--friends-accent);
+    opacity: 0.8;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.friends-comment-reply-name:hover {
+    text-decoration: underline;
+}
+
+.friends-comment-content {
+    color: var(--text-primary);
+    word-break: break-word;
+    flex: 1;
+}
+
+.friends-comment-time {
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* ===== 操作栏 ===== */
+.friends-post-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.friends-action-btns {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.friends-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: none;
+    border: none;
+}
+
+.friends-action-btn:hover {
+    color: var(--friends-accent);
+    background: rgba(var(--friends-accent-rgb), 0.1);
+}
+
+.friends-action-btn i {
+    font-size: 16px;
+}
+
+.friends-action-btn.liked {
+    color: var(--friends-accent);
+}
+
+.friends-action-btn.liked i {
+    animation: friendsHeartBeat 0.3s ease;
+}
+
+@keyframes friendsHeartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* ===== 发布朋友圈弹窗 ===== */
+.friends-publish-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.friends-publish-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.friends-publish-modal {
+    width: min(420px, 95vw);
+    max-height: 80vh;
+    background: var(--primary-bg);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(30px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 
+        0 30px 100px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(var(--friends-accent-rgb), 0.1);
+}
+
+.friends-publish-overlay.active .friends-publish-modal {
+    transform: translateY(0) scale(1);
+}
+
+.friends-publish-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(var(--friends-accent-rgb), 0.1);
+}
+
+.friends-publish-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.friends-publish-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.friends-publish-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+.friends-publish-content {
+    flex: 1;
+    padding: 16px 20px;
+    overflow-y: auto;
+}
+
+.friends-textarea {
+    width: 100%;
+    min-height: 120px;
+    background: transparent;
+    border: none;
+    resize: none;
+    font-size: 15px;
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-family: var(--font-family);
+    outline: none;
+}
+
+.friends-textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.friends-publish-images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.friends-publish-image-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--secondary-bg);
+    border: 1px dashed rgba(var(--friends-accent-rgb), 0.2);
+}
+
+.friends-publish-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.friends-publish-image-item .remove-image {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.friends-publish-image-item:hover .remove-image {
+    opacity: 1;
+}
+
+.friends-add-image {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 1px dashed rgba(var(--friends-accent-rgb), 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--friends-accent);
+    background: rgba(var(--friends-accent-rgb), 0.05);
+}
+
+.friends-add-image:hover {
+    background: rgba(var(--friends-accent-rgb), 0.1);
+    border-color: rgba(var(--friends-accent-rgb), 0.5);
+}
+
+.friends-add-image i {
+    font-size: 24px;
+    opacity: 0.7;
+}
+
+.friends-add-image span {
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+.friends-publish-footer {
+    padding: 12px 20px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.friends-publish-btn {
+    padding: 10px 28px;
+    border-radius: 24px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-family);
+}
+
+.friends-publish-btn.cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+}
+
+.friends-publish-btn.cancel:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
+}
+
+.friends-publish-btn.submit {
+    background: var(--friends-accent);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(var(--friends-accent-rgb), 0.3);
+}
+
+.friends-publish-btn.submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(var(--friends-accent-rgb), 0.4);
+}
+
+.friends-publish-btn.submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== 底部评论输入框 ===== */
+.friends-comment-input-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10002;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.friends-comment-input-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.friends-comment-input-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--primary-bg);
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    border-top: 1px solid rgba(var(--friends-accent-rgb), 0.1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 10003;
+}
+
+.friends-comment-input-overlay.active .friends-comment-input-bar {
+    transform: translateY(0);
+}
+
+.friends-comment-input {
+    flex: 1;
+    min-height: 40px;
+    max-height: 120px;
+    background: var(--secondary-bg);
+    border: 1px solid rgba(var(--friends-accent-rgb), 0.15);
+    border-radius: 20px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: var(--text-primary);
+    resize: none;
+    outline: none;
+    font-family: var(--font-family);
+    line-height: 1.4;
+    transition: border-color 0.2s ease;
+}
+
+.friends-comment-input:focus {
+    border-color: rgba(var(--friends-accent-rgb), 0.4);
+}
+
+.friends-comment-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+
+.friends-comment-send {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--friends-accent);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.friends-comment-send:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(var(--friends-accent-rgb), 0.4);
+}
+
+.friends-comment-send:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ===== 图片预览 ===== */
+.friends-preview-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10005;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.friends-preview-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.friends-preview-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.friends-preview-close:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.friends-preview-image {
+    max-width: 95vw;
+    max-height: 95vh;
+    object-fit: contain;
+}
+
+.friends-preview-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.2s ease;
+}
+
+.friends-preview-nav:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.friends-preview-nav.prev {
+    left: 20px;
+}
+
+.friends-preview-nav.next {
+    right: 20px;
+}
+
+.friends-preview-counter {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+/* ===== 更多操作菜单 ===== */
+.friends-more-menu {
+    position: fixed;
+    background: var(--primary-bg);
+    border-radius: 12px;
+    padding: 8px 0;
+    min-width: 160px;
+    box-shadow: 
+        0 10px 40px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(var(--friends-accent-rgb), 0.1);
+    z-index: 10004;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9) translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.friends-more-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+}
+
+.friends-more-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.friends-more-item:hover {
+    background: rgba(var(--friends-accent-rgb), 0.1);
+}
+
+.friends-more-item i {
+    width: 20px;
+    color: var(--friends-accent);
+    opacity: 0.8;
+}
+
+.friends-more-item.danger {
+    color: #ff6b6b;
+}
+
+.friends-more-item.danger i {
+    color: #ff6b6b;
+}
+
+/* ===== 删除确认 ===== */
+.friends-delete-confirm {
+    position: fixed;
+    inset: 0;
+    z-index: 10006;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.friends-delete-confirm.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.friends-delete-dialog {
+    background: var(--primary-bg);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    max-width: 280px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.friends-delete-dialog h4 {
+    font-size: 16px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.friends-delete-dialog p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.friends-delete-btns {
+    display: flex;
+    gap: 12px;
+}
+
+.friends-delete-btns button {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.friends-delete-btns .cancel {
+    background: var(--secondary-bg);
+    color: var(--text-secondary);
+}
+
+.friends-delete-btns .confirm {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+/* ===== 响应式适配 ===== */
+@media (max-width: 480px) {
+    .friends-modal {
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    
+    .friends-post {
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+    
+    .friends-post-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .friends-post-name {
+        font-size: 14px;
+    }
+    
+    .friends-post-text {
+        font-size: 13px;
+    }
+    
+    .friends-images-grid {
+        gap: 3px;
+    }
+    
+    .friends-publish-modal {
+        width: 100%;
+        max-height: 90vh;
+        border-radius: 20px 20px 0 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+}
+
+/* ===== 加载动画 ===== */
+.friends-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    gap: 16px;
+}
+
+.friends-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(var(--friends-accent-rgb), 0.2);
+    border-top-color: var(--friends-accent);
+    border-radius: 50%;
+    animation: friendsSpin 0.8s linear infinite;
+}
+
+@keyframes friendsSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* ===== Toast 提示 ===== */
+.friends-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    z-index: 10010;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.friends-toast.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* ===== 输入框隐藏 ===== */
+.friends-hidden-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
