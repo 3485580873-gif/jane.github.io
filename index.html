@@ -1272,6 +1272,9 @@
                     <i class="fas fa-magic"></i>实用工具
                 </div>
                 <div class="settings-item-list">
+                    <div class="settings-item" id="friends-function" onclick="if(window.FriendsModule){FriendsModule.open();}else{alert('请刷新页面');}">
+        <i class="fas fa-globe-americas"></i><span>朋友圈</span>
+                        </div>
                     <div class="settings-item" id="custom-replies-function">
                         <i class="fas fa-comment-dots"></i><span>自定义回复</span>
                     </div>
@@ -2137,5 +2140,6 @@
     <script src="js/onboarding.js"></script> 
     <script src="js/listeners.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/friends.js"></script>
 </body>
 </html>
