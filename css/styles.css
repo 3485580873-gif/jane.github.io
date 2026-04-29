@@ -10858,3 +10858,20 @@
             border-color: var(--accent-color) !important;
             outline: none;
         }
+        .env-letter-like {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+        .env-letter-like:hover {
+            background: rgba(var(--accent-color-rgb), 0.1);
+        }
+        .env-view-action-btn.liked {
+            color: var(--accent-color);
+        }
