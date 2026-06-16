@@ -502,74 +502,131 @@ function showPokeTab() {
     area.style.display = 'flex';
     area.style.flexDirection = 'column';
     area.style.gap = '8px';
-    
-    const quickPokes = customPokes.slice(0, 6);
-    
-    quickPokes.forEach(pokeText => {
+
+    // 使用独立的 myPokes 库（表情快捷栏专用），不继承预设
+    const pokes = (typeof myPokes !== 'undefined' && Array.isArray(myPokes)) ? myPokes : [];
+
+    if (pokes.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'text-align:center;padding:30px 10px;color:var(--text-secondary);font-size:13px;';
+        empty.innerHTML = '<i class="fas fa-hand-sparkles" style="font-size:24px;margin-bottom:8px;display:block;opacity:0.4;"></i>暂无拍一拍<br><span style="font-size:11px;opacity:0.6;">点击下方按钮添加</span>';
+        area.appendChild(empty);
+    }
+
+    pokes.forEach((pokeText, idx) => {
         const cleanPokeText = (typeof window._sanitizePokeTextForDisplay === 'function')
             ? window._sanitizePokeTextForDisplay(pokeText)
             : pokeText;
-        const btn = document.createElement('button');
-        btn.textContent = cleanPokeText;
-        btn.style.cssText = `
-            padding: 10px 14px;
-            background: linear-gradient(135deg, var(--secondary-bg), rgba(var(--accent-color-rgb),0.04));
-            border: 1px solid rgba(var(--accent-color-rgb),0.15);
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: left;
-            font-size: 13px;
-            transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
-            color: var(--text-primary);
-            font-family: var(--font-family);
-            width: 100%;
+        const item = document.createElement('div');
+        item.style.cssText = `
+            display:flex;align-items:center;gap:8px;padding:10px 12px;
+            background:var(--primary-bg);border:1px solid var(--border-color);
+            border-radius:12px;cursor:pointer;
+            transition:all 0.2s;font-family:var(--font-family);
         `;
-        btn.addEventListener('mouseover', () => {
-            btn.style.background = 'linear-gradient(135deg, rgba(var(--accent-color-rgb),0.12), rgba(var(--accent-color-rgb),0.06))';
-            btn.style.borderColor = 'var(--accent-color)';
-            btn.style.transform = 'translateX(4px)';
+        const _esc = (typeof window !== 'undefined' && window.escapeHtml) ? window.escapeHtml : (s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
+        item.innerHTML = `
+            <div style="flex:1;min-width:0;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${_esc(cleanPokeText)}">${_esc(cleanPokeText)}</div>
+            <button class="poke-send-btn" title="发送" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border-color);background:var(--accent-color);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <button class="poke-del-btn" title="删除" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border-color);background:var(--primary-bg);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        item.addEventListener('mouseover', () => {
+            item.style.borderColor = 'var(--accent-color)';
+            item.style.background = 'rgba(var(--accent-color-rgb),0.04)';
         });
-        btn.addEventListener('mouseout', () => {
-            btn.style.background = 'linear-gradient(135deg, var(--secondary-bg), rgba(var(--accent-color-rgb),0.04))';
-            btn.style.borderColor = 'rgba(var(--accent-color-rgb),0.15)';
-            btn.style.transform = '';
+        item.addEventListener('mouseout', () => {
+            item.style.borderColor = 'var(--border-color)';
+            item.style.background = 'var(--primary-bg)';
         });
-        btn.onclick = () => {
+        // 发送按钮
+        item.querySelector('.poke-send-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
             addMessage({
-                id: Date.now(), 
-                text: _formatPokeText(`${settings.myName} ${cleanPokeText}`), 
-                timestamp: new Date(), 
+                id: Date.now(),
+                text: _formatPokeText(`${settings.myName} ${cleanPokeText}`),
+                timestamp: new Date(),
                 type: 'system'
             });
             document.getElementById('user-sticker-picker').classList.remove('active');
+            if (typeof playSound === 'function') playSound('poke');
             const delayRange = settings.replyDelayMax - settings.replyDelayMin;
             const randomDelay = settings.replyDelayMin + Math.random() * delayRange;
             setTimeout(simulateReply, randomDelay);
-        };
-        area.appendChild(btn);
+        });
+        // 删除按钮
+        item.querySelector('.poke-del-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm('确定删除此拍一拍？')) {
+                myPokes.splice(idx, 1);
+                if (typeof throttledSaveData === 'function') throttledSaveData();
+                showPokeTab(); // 刷新列表
+            }
+        });
+        // 点击整行也发送
+        item.addEventListener('click', () => {
+            addMessage({
+                id: Date.now(),
+                text: _formatPokeText(`${settings.myName} ${cleanPokeText}`),
+                timestamp: new Date(),
+                type: 'system'
+            });
+            document.getElementById('user-sticker-picker').classList.remove('active');
+            if (typeof playSound === 'function') playSound('poke');
+            const delayRange = settings.replyDelayMax - settings.replyDelayMin;
+            const randomDelay = settings.replyDelayMin + Math.random() * delayRange;
+            setTimeout(simulateReply, randomDelay);
+        });
+        area.appendChild(item);
     });
-    
-    const customBtn = document.createElement('button');
-    customBtn.innerHTML = '<i class="fas fa-edit"></i> 自定义拍一拍';
-    customBtn.style.cssText = `
-        padding: 11px 14px;
-        background: linear-gradient(135deg, var(--accent-color), rgba(var(--accent-color-rgb),0.8));
-        color: #fff;
-        border: none;
-        border-radius: 12px;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 13px;
-        width: 100%;
-        letter-spacing: 0.3px;
-        margin-top: 4px;
-        box-shadow: 0 4px 14px rgba(var(--accent-color-rgb), 0.25);
+
+    // 底部操作按钮
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;margin-top:4px;';
+
+    const addBtn = document.createElement('button');
+    addBtn.innerHTML = '<i class="fas fa-plus"></i> 添加拍一拍';
+    addBtn.style.cssText = `
+        flex:1;padding:11px 14px;
+        background:linear-gradient(135deg, var(--accent-color), rgba(var(--accent-color-rgb),0.8));
+        color:#fff;border:none;border-radius:12px;cursor:pointer;
+        font-weight:600;font-size:13px;width:100%;
+        letter-spacing:0.3px;box-shadow:0 4px 14px rgba(var(--accent-color-rgb),0.25);
+        font-family:var(--font-family);
     `;
-    customBtn.onclick = () => {
+    addBtn.onclick = () => {
         document.getElementById('user-sticker-picker').classList.remove('active');
         showModal(DOMElements.pokeModal.modal, DOMElements.pokeModal.input);
     };
-    area.appendChild(customBtn);
+    btnRow.appendChild(addBtn);
+
+    // 清空全部按钮（仅当有内容时显示）
+    if (pokes.length > 0) {
+        const clearBtn = document.createElement('button');
+        clearBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        clearBtn.title = '清空全部';
+        clearBtn.style.cssText = `
+            width:42px;height:42px;border-radius:12px;border:1px solid var(--border-color);
+            background:var(--primary-bg);color:var(--text-secondary);cursor:pointer;
+            display:flex;align-items:center;justify-content:center;font-size:13px;
+            flex-shrink:0;font-family:var(--font-family);
+        `;
+        clearBtn.onmouseover = () => { clearBtn.style.color = '#e74c3c'; clearBtn.style.borderColor = '#e74c3c'; };
+        clearBtn.onmouseout = () => { clearBtn.style.color = 'var(--text-secondary)'; clearBtn.style.borderColor = 'var(--border-color)'; };
+        clearBtn.onclick = () => {
+            if (confirm('确定清空所有拍一拍？此操作不可恢复。')) {
+                myPokes = [];
+                if (typeof throttledSaveData === 'function') throttledSaveData();
+                showPokeTab();
+            }
+        };
+        btnRow.appendChild(clearBtn);
+    }
+
+    area.appendChild(btnRow);
 }
         function initCoreListeners() {
 

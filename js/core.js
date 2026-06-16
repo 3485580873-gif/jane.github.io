@@ -296,6 +296,7 @@ const loadData = async () => {
             localforage.getItem(getStorageKey('customReplies')),
             localforage.getItem(getStorageKey('customPokes')),
             localforage.getItem(getStorageKey('customStatuses')),
+            localforage.getItem(getStorageKey('myPokes')),
             localforage.getItem(getStorageKey('customMottos')),
             localforage.getItem(getStorageKey('customIntros')),
             localforage.getItem(getStorageKey('anniversaries')),
@@ -321,22 +322,23 @@ const loadData = async () => {
         const savedCustomReplies = getVal(3);
         const savedPokes = getVal(4);
         const savedStatuses = getVal(5);
-        const savedMottos = getVal(6);
-        const savedIntros = getVal(7);
-        const savedAnniversaries = getVal(8);
-        const savedKaomojiLibrary = getVal(9);
-        const savedStickers = getVal(10);
-        const savedCustomThemes = getVal(11);
-        const savedChatBg = getVal(12);
-        const partnerAvatarSrc = getVal(13);
-        const myAvatarSrc = getVal(14);
-        const savedPartnerPersonas = getVal(15);
-        const savedShowNameConfig = getVal(16);
-        const savedThemeSchemes = getVal(17);
-        const savedMyStickers = getVal(18);
-        const savedReplyGroups = getVal(19);
-        const savedPokeGroups = getVal(20);
-        const savedStatusGroups = getVal(21);
+        const savedMyPokes = getVal(6);
+        const savedMottos = getVal(7);
+        const savedIntros = getVal(8);
+        const savedAnniversaries = getVal(9);
+        const savedKaomojiLibrary = getVal(10);
+        const savedStickers = getVal(11);
+        const savedCustomThemes = getVal(12);
+        const savedChatBg = getVal(13);
+        const partnerAvatarSrc = getVal(14);
+        const myAvatarSrc = getVal(15);
+        const savedPartnerPersonas = getVal(16);
+        const savedShowNameConfig = getVal(17);
+        const savedThemeSchemes = getVal(18);
+        const savedMyStickers = getVal(19);
+        const savedReplyGroups = getVal(20);
+        const savedPokeGroups = getVal(21);
+        const savedStatusGroups = getVal(22);
 
         if (savedPartnerPersonas) partnerPersonas = savedPartnerPersonas;
 
@@ -356,6 +358,13 @@ const loadData = async () => {
         
         if (savedPokes) customPokes = savedPokes;
         else customPokes = [...CONSTANTS.POKE_ACTIONS];
+
+        // myPokes 独立库（表情快捷栏专用拍一拍）
+        if (savedMyPokes && Array.isArray(savedMyPokes)) {
+            myPokes = savedMyPokes;
+        } else {
+            myPokes = [];
+        }
 
         if (savedStatuses) customStatuses = savedStatuses;
         else customStatuses = [...CONSTANTS.PARTNER_STATUSES];
@@ -381,6 +390,9 @@ const loadData = async () => {
                 if (backup.settings) Object.assign(settings, backup.settings);
                 if (backup.anniversaries && Array.isArray(backup.anniversaries)) {
                     anniversaries = backup.anniversaries;
+                }
+                if (backup.myPokes && Array.isArray(backup.myPokes)) {
+                    myPokes = backup.myPokes;
                 }
                 setTimeout(() => saveData(), 1000);
                 showNotification(
@@ -583,6 +595,7 @@ const saveData = async () => {
         { key: 'kaomojiLibrary',         val: () => localforage.setItem(getStorageKey('kaomojiLibrary'), kaomojiLibrary) },
         { key: 'anniversaries',          val: () => localforage.setItem(getStorageKey('anniversaries'), anniversaries) },
         { key: 'customPokes',            val: () => localforage.setItem(getStorageKey('customPokes'), customPokes) },
+        { key: 'myPokes',                val: () => localforage.setItem(getStorageKey('myPokes'), myPokes || []) },
         { key: 'customStatuses',         val: () => localforage.setItem(getStorageKey('customStatuses'), customStatuses) },
         { key: 'customMottos',           val: () => localforage.setItem(getStorageKey('customMottos'), customMottos) },
         { key: 'customIntros',           val: () => localforage.setItem(getStorageKey('customIntros'), customIntros) },

@@ -181,12 +181,11 @@ if (target.classList.contains('delete-btn')) {
 
                 if (shouldSaveToLibrary) {
                     try {
-                        if (!Array.isArray(customPokes)) customPokes = [];
-                        const exists = customPokes.some(r => String(r) === String(pokeText));
+                        if (!Array.isArray(myPokes)) myPokes = [];
+                        const exists = myPokes.some(r => String(r) === String(pokeText));
                         if (!exists) {
-                            customPokes.unshift(pokeText);
+                            myPokes.unshift(pokeText);
                             if (typeof throttledSaveData === 'function') throttledSaveData();
-                            if (typeof renderReplyLibrary === 'function') renderReplyLibrary();
                         }
                     } catch (e) {
                         console.warn('拍一拍保存到库失败:', e);

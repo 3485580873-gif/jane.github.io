@@ -36,6 +36,7 @@
         let currentReplyTab = 'custom';
         let customEmojis = [];
         let kaomojiLibrary = [];  // 颜文字库
+        let myPokes = [];  // 表情快捷栏专用拍一拍库
         let anniversaries = [];
         let stickerLibrary = []; 
         let myStickerLibrary = []; 
