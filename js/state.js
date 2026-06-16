@@ -35,6 +35,7 @@
         let currentSubTab = 'custom';  
         let currentReplyTab = 'custom';
         let customEmojis = [];
+        let kaomojiLibrary = [];  // 颜文字库
         let anniversaries = [];
         let stickerLibrary = []; 
         let myStickerLibrary = []; 

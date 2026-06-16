@@ -185,8 +185,13 @@ autoSendInterval: 5,
         partnerPokeSoundPreset: 'tone_low',
         partnerPokeCustomSoundUrl: '',
         soundVolume: 0.15,
-        bottomCollapseMode: false,
-        emojiMixEnabled: true
+                bottomCollapseMode: false,
+                emojiMixEnabled: true,
+                kaomojiMixEnabled: true,
+                enterKeySendEnabled: false,
+                pinyinCardEnabled: false,
+                pinyinCardMin: 2,
+                pinyinCardMax: 3
             };
         }
 
@@ -294,6 +299,7 @@ const loadData = async () => {
             localforage.getItem(getStorageKey('customMottos')),
             localforage.getItem(getStorageKey('customIntros')),
             localforage.getItem(getStorageKey('anniversaries')),
+            localforage.getItem(getStorageKey('kaomojiLibrary')),
             localforage.getItem(getStorageKey('stickerLibrary')),
             localforage.getItem(`${APP_PREFIX}customThemes`),
             localforage.getItem(getStorageKey('chatBackground')),
@@ -318,18 +324,19 @@ const loadData = async () => {
         const savedMottos = getVal(6);
         const savedIntros = getVal(7);
         const savedAnniversaries = getVal(8);
-        const savedStickers = getVal(9);
-        const savedCustomThemes = getVal(10);
-        const savedChatBg = getVal(11);
-        const partnerAvatarSrc = getVal(12);
-        const myAvatarSrc = getVal(13);
-        const savedPartnerPersonas = getVal(14);
-        const savedShowNameConfig = getVal(15);
-        const savedThemeSchemes = getVal(16);
-        const savedMyStickers = getVal(17);
-        const savedReplyGroups = getVal(18);
-        const savedPokeGroups = getVal(19);
-        const savedStatusGroups = getVal(20);
+        const savedKaomojiLibrary = getVal(9);
+        const savedStickers = getVal(10);
+        const savedCustomThemes = getVal(11);
+        const savedChatBg = getVal(12);
+        const partnerAvatarSrc = getVal(13);
+        const myAvatarSrc = getVal(14);
+        const savedPartnerPersonas = getVal(15);
+        const savedShowNameConfig = getVal(16);
+        const savedThemeSchemes = getVal(17);
+        const savedMyStickers = getVal(18);
+        const savedReplyGroups = getVal(19);
+        const savedPokeGroups = getVal(20);
+        const savedStatusGroups = getVal(21);
 
         if (savedPartnerPersonas) partnerPersonas = savedPartnerPersonas;
 
@@ -396,12 +403,15 @@ const loadData = async () => {
         if (savedPokeGroups) window.customPokeGroups = savedPokeGroups;
         if (savedStatusGroups) window.customStatusGroups = savedStatusGroups;
         if (savedAnniversaries) anniversaries = savedAnniversaries;
+        if (savedKaomojiLibrary) kaomojiLibrary = savedKaomojiLibrary;
         if (savedStickers) stickerLibrary = savedStickers;
         if (savedMyStickers) myStickerLibrary = savedMyStickers;
         if (savedCustomThemes) customThemes = savedCustomThemes;
         if (savedThemeSchemes) themeSchemes = savedThemeSchemes;
         try { const ce = await localforage.getItem(getStorageKey('customEmojis')); if (ce && Array.isArray(ce)) customEmojis = ce; } catch(e) {}
         window._customReplies = customReplies;
+        window._kaomojiLibrary = kaomojiLibrary;
+        window._customEmojis = customEmojis;
         window._CONSTANTS = CONSTANTS;
 
         if (DOMElements && DOMElements.partner && DOMElements.me) {
@@ -570,6 +580,7 @@ const saveData = async () => {
         { key: 'customPokeGroups',        val: () => localforage.setItem(getStorageKey('customPokeGroups'), window.customPokeGroups || []) },
         { key: 'customStatusGroups',      val: () => localforage.setItem(getStorageKey('customStatusGroups'), window.customStatusGroups || []) },
         { key: 'customEmojis',           val: () => localforage.setItem(getStorageKey('customEmojis'), customEmojis) },
+        { key: 'kaomojiLibrary',         val: () => localforage.setItem(getStorageKey('kaomojiLibrary'), kaomojiLibrary) },
         { key: 'anniversaries',          val: () => localforage.setItem(getStorageKey('anniversaries'), anniversaries) },
         { key: 'customPokes',            val: () => localforage.setItem(getStorageKey('customPokes'), customPokes) },
         { key: 'customStatuses',         val: () => localforage.setItem(getStorageKey('customStatuses'), customStatuses) },
@@ -1637,6 +1648,63 @@ if (partnerPersonas && partnerPersonas.length > 0 && Math.random() < 0.3) {
                 // ── 对方拍一拍：调用提取的通用函数（同时供 /测试拍一拍 指令使用）──
                 if (typeof window._triggerPartnerPoke === 'function') window._triggerPartnerPoke();
                 return;
+            }
+
+            // 拼字卡模式：随机抽取2-3条字卡合并发送
+            if (settings.pinyinCardEnabled && Math.random() < 0.3) {
+                const allCards = [];
+                // 收集字卡库中的字卡
+                if (window._customReplies && window._customReplies.length > 0) {
+                    allCards.push(...window._customReplies.map(r => String(r || '').trim()).filter(Boolean));
+                }
+                // 收集颜文字
+                if (window._kaomojiLibrary && window._kaomojiLibrary.length > 0) {
+                    allCards.push(...window._kaomojiLibrary.map(k => String(k || '').trim()).filter(Boolean));
+                }
+                // 收集emoji
+                if (window._customEmojis && window._customEmojis.length > 0) {
+                    allCards.push(...window._customEmojis.map(e => String(e || '').trim()).filter(Boolean));
+                }
+                if (allCards.length >= 2) {
+                    showTypingIndicator();
+                    const minCount = Math.max(2, settings.pinyinCardMin || 2);
+                    const maxCount = Math.max(minCount, settings.pinyinCardMax || 3);
+                    const cardCount = minCount + Math.floor(Math.random() * (maxCount - minCount + 1));
+                    const shuffled = allCards.sort(() => Math.random() - 0.5);
+                    const picked = shuffled.slice(0, Math.min(cardCount, shuffled.length));
+                    const mergedText = picked.join('，');
+                    const _delayRange = Math.max(0, settings.replyDelayMax - settings.replyDelayMin);
+                    const _delay = settings.replyDelayMin + Math.random() * _delayRange;
+                    setTimeout(() => {
+                        addMessage({
+                            id: Date.now(),
+                            sender: settings.partnerName || '对方',
+                            text: mergedText,
+                            timestamp: new Date(),
+                            status: 'received',
+                            favorited: false,
+                            note: null,
+                            type: 'normal'
+                        });
+                        playSound('message');
+                        if (typeof window._sendPartnerNotification === 'function') {
+                            window._sendPartnerNotification(settings.partnerName || '对方', mergedText);
+                        }
+                        // 隐藏"正在输入中"（拼字卡路径也需要隐藏）
+                        (function(){
+                            try { if (window._typingIndicatorAutoHideTimer) { clearTimeout(window._typingIndicatorAutoHideTimer); window._typingIndicatorAutoHideTimer = null; } } catch(e) {}
+                            var _tiW = document.getElementById('typing-indicator-wrapper');
+                            if (_tiW) {
+                                var _tiInner = _tiW.querySelector('.typing-indicator');
+                                if (_tiInner) {
+                                    _tiInner.classList.add('hiding');
+                                    setTimeout(function() { _tiW.style.display = 'none'; if (_tiInner) _tiInner.classList.remove('hiding'); }, 240);
+                                } else { _tiW.style.display = 'none'; }
+                            }
+                        })();
+                    }, _delay);
+                    return;
+                }
             }
 
             const replyCount = Math.random() < 0.75 ? 1: (Math.random() < 0.95 ? 2: 3);

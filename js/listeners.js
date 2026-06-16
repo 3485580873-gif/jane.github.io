@@ -434,11 +434,12 @@ if (_chatSettingsEl) _chatSettingsEl.addEventListener('click', () => {
         '#read-receipts-toggle': { prop: 'readReceiptsEnabled', name: '已读回执' },
         '#typing-indicator-toggle': { prop: 'typingIndicatorEnabled', name: '正在输入' },
         '#read-no-reply-toggle': { prop: 'allowReadNoReply', name: '已读不回' },
-        '#emoji-mix-toggle': { prop: 'emojiMixEnabled', name: '表情消息' }
+        '#emoji-mix-toggle': { prop: 'emojiMixEnabled', name: '表情消息' },
+        '#pinyin-card-toggle': { prop: 'pinyinCardEnabled', name: '拼字卡' }
     };
     for (const [selector, { prop }] of Object.entries(toggleSyncMap)) {
         const el = document.querySelector(selector);
-        const val = prop === 'emojiMixEnabled' ? (settings[prop] !== false) : !!settings[prop];
+        const val = (prop === 'emojiMixEnabled' || prop === 'pinyinCardEnabled') ? (settings[prop] !== false) : !!settings[prop];
         if (el) el.classList.toggle('active', val);
     }
     const svSlider = document.getElementById('sound-volume-slider');
@@ -1069,11 +1070,11 @@ if (_chatSettingsEl) _chatSettingsEl.addEventListener('click', () => {
                 const element = document.querySelector(selector);
                 if (!element) continue;
 
-                const _initVal = prop === 'emojiMixEnabled' ? (settings[prop] !== false) : !!settings[prop];
+                const _initVal = (prop === 'emojiMixEnabled' || prop === 'pinyinCardEnabled') ? (settings[prop] !== false) : !!settings[prop];
                 element.classList.toggle('active', _initVal);
 
                 element.addEventListener('click', () => {
-                    if (prop === 'emojiMixEnabled' && settings[prop] === undefined) settings[prop] = true;
+                    if ((prop === 'emojiMixEnabled' || prop === 'pinyinCardEnabled') && settings[prop] === undefined) settings[prop] = true;
                     settings[prop] = !settings[prop];
                     throttledSaveData();
                     updateUI();
