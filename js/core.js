@@ -1083,6 +1083,8 @@ function createMessageFragment(msg, prevMsg, nextMsg, lastSenderRef) {
     const isImageOnly = !msg.text && !!msg.image;
     let content = msg.text ? `<div>${msg.text.replace(/\n/g, '<br>')}</div>` : '';
     if (msg.image) content += `<img src="${msg.image}" class="message-image${isImageOnly ? ' message-image-only' : ''}" alt="图片" style="max-width:${isImageOnly ? '100px' : '100px'}; border-radius: 12px;${!isImageOnly ? ' margin-top: 6px;' : ''} cursor: pointer;" onclick="viewImage('${msg.image}')">`;
+    // 如果有 sticker（表情包），显示在文字下方
+    if (msg.sticker) content += `<img src="${msg.sticker}" class="message-sticker" alt="表情包" style="max-width:100px; border-radius: 12px; margin-top: 6px; cursor: pointer;" onclick="viewImage('${msg.sticker}')">`;
     messageHTML += content;
 
     const messageDiv = document.createElement('div');
@@ -1181,6 +1183,25 @@ function _updateReadReceiptsDOM() {
 }
 
 function renderMessages(preserveScroll = false) {
+    // ... existing code ...
+}
+
+// ── 聊天表情包预览（与文字框配套发送）──
+window.setChatStickerPreview = function(src) {
+    window._pendingChatSticker = src;
+    const preview = document.getElementById('chat-sticker-preview');
+    const img = document.getElementById('chat-sticker-preview-img');
+    if (preview && img) {
+        img.src = src;
+        preview.style.display = 'block';
+    }
+};
+
+window.clearChatStickerPreview = function() {
+    window._pendingChatSticker = null;
+    const preview = document.getElementById('chat-sticker-preview');
+    if (preview) preview.style.display = 'none';
+};
     const container = DOMElements.chatContainer;
     const totalMessages = messages.length;
     const startIndex = Math.max(0, totalMessages - displayedMessageCount);
@@ -1403,7 +1424,11 @@ const addMessage = (message) => {
         function sendMessage(textOverride = null, type = 'normal') {
             const text = textOverride || DOMElements.messageInput.value.trim();
             const imageFile = DOMElements.imageInput.files[0];
-            if (!text && !imageFile && type === 'normal') return;
+            
+            // 检查是否有待发送的表情包
+            const pendingSticker = window._pendingChatSticker || null;
+            
+            if (!text && !imageFile && !pendingSticker && type === 'normal') return;
 
             // ── 斜杠指令拦截 ──
             if (text && text.startsWith('/') && type === 'normal') {
@@ -1443,6 +1468,14 @@ const addMessage = (message) => {
                     replyTo: currentReplyTo,
                     type: type
                 };
+                
+                // 如果有待发送的表情包，作为 sticker 字段附加
+                if (pendingSticker) {
+                    messageData.sticker = pendingSticker;
+                    window._pendingChatSticker = null;
+                    window.clearChatStickerPreview && window.clearChatStickerPreview();
+                }
+                
                 if (type === 'system') messageData.sender = null;
 
                 addMessage(messageData);

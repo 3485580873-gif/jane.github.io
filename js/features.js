@@ -473,24 +473,14 @@ function showEmojiTab() {
                 batchMessages.push({ id: Date.now() + batchMessages.length, text: '', image: src });
                 updateBatchPreview();
                 showNotification('已添加到批量发送', 'success', 1200);
+                document.getElementById('user-sticker-picker').classList.remove('active');
             } else {
-                addMessage({
-                    id: Date.now(),
-                    sender: 'user',
-                    text: '',
-                    timestamp: new Date(),
-                    image: src,
-                    status: 'sent',
-                    type: 'normal'
-                });
-                playSound('send');
-                
-                const delayRange = settings.replyDelayMax - settings.replyDelayMin;
-                const randomDelay = settings.replyDelayMin + Math.random() * delayRange;
-                if (window._pendingReplyTimer) clearTimeout(window._pendingReplyTimer);
-                window._pendingReplyTimer = setTimeout(() => { window._pendingReplyTimer = null; simulateReply(); }, randomDelay);
+                // 将表情包放入输入框预览区，与文字配套发送
+                window.setChatStickerPreview(src);
+                document.getElementById('user-sticker-picker').classList.remove('active');
+                const input = document.getElementById('message-input');
+                if (input) input.focus();
             }
-            document.getElementById('user-sticker-picker').classList.remove('active');
         };
         area.appendChild(item);
     });
